@@ -32,55 +32,64 @@ int high_scores(const int &level){
 	std::cout << "Hi! Enter your name, please:" << std::endl;
 	std::string user_name;
 	std::cin >> user_name;
-	//const int attempts_amount = check_value(level);
+
+	//check an input values
+	const int attempts_amount = check_value(level);
+
 	{	
-		std::fstream io_file(high_scores_filename, std::ios_base::in | std::ios_base::out | std::fstream::app);
+		std::fstream io_file(high_scores_filename, std::ios_base::in | std::ios_base::out );
 
 		std::string previous_name;
 		int previous_score = 0;
+		bool name_in_file = false;
+		bool first_launch = true;
 
-		if(!io_file.is_open()){
+		//check if it is the first launch, skip this check
+		if(!io_file.is_open() && !first_launch){
 			std::cout <<"Failed to open file for write: " << high_scores_filename << "!" << std::endl;
 			return -1;
 		}
-		//io_file >> previous_name;
-		io_file.seekp(0);
-		io_file.put('x');
-		
-		//io_file >> previous_score;
 
-		// while(true){
-		// 	io_file >> previous_name;
-		// 	io_file >> previous_score;
+		while(io_file >> previous_name || io_file >> previous_score){
+			
+			if(previous_name == user_name){
+				name_in_file = true;
+				io_file >> previous_score;
+				if(previous_score > attempts_amount){
+					if(previous_score < 9){
+						io_file.seekg(-1, std::ios::cur);
+						io_file << attempts_amount;
+						io_file.seekg(io_file.tellg(), std::ios::beg);
+					}
+					else if( previous_score >= 10 ) {
+						io_file.seekg(-2, std::ios::cur);
+						io_file << attempts_amount << " ";
+						io_file.seekg(io_file.tellg(), std::ios::beg);
+					}
+				}
+			}
 
-		// 	if( previous_name == user_name ){
-		// 		io_file.seekp(0, std::ios::cur);
+			io_file >> previous_score;
+		}
 
-		// 		break;
-		// 	}
+		//write in a file, if name not in file
+		if(!name_in_file){
+			std::fstream i_file(high_scores_filename, std::ios::out | std::ios::app);
 
-		// 	io_file.ignore();
-		// 	if(io_file.fail()){
-		// 		break;
-		// 	}
-		// }
+			if(!i_file.is_open()){
+				std::cout <<"Failed to open file for write: " << high_scores_filename << "!" << std::endl;
+				return -1;
+			}
 
-		//std::cout << previous_name << std::endl;
-		std::cout << previous_name << '\t' << previous_score << std::endl;
-		
+			i_file << user_name << '\t';
+			i_file << attempts_amount;
+			i_file << std::endl;
+		}
 
-		// std::ofstream out_file(high_scores_filename, std::ios_base::app);
-		// if(!out_file.is_open()){
-		// 	std::cout <<"Failed to open file for write: " << high_scores_filename << "!" << std::endl;
-		// 	return -1;
-		// }
-		// out_file << user_name << '\t';
-		// out_file << attempts_amount;
-
-		// out_file << std::endl;
-	
+		first_launch = false;
 	}
-	//read_from_file();
+	
+	read_from_file();
 
 	return 0;
 }
