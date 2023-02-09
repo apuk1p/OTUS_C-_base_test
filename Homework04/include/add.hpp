@@ -6,15 +6,26 @@
 
 class Add : public ASTNode {
 	public:
-		Add(std::string val, ASTNode *val1, ASTNode *val2) 
-			: ASTNode(val,val1, val2) 
-			, val_(val) {}
+		Add(std::string val, ASTNode *left, ASTNode *right) 
+			: ASTNode(val, left, right) 
+			, val_(val) 
+			{
+				// std::cout << this << std::endl;
+				// std::cout << "this Add" << std::endl;
+			}
 		
 		Add(const Add &other) = delete;
 
-		Add &operator=(const Add &other) = delete;
+		Add &operator=(const Add &other)  = delete;
 
-		~Add() {delete &val_;};
+		virtual ~Add() override;
 
+	private:
 		std::string val_;
 };
+
+Add::~Add ()
+{
+	// std::cout << this << std::endl;
+	// std::cout << "Add destructor " << std::endl;
+}

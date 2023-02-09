@@ -14,7 +14,14 @@ class Variable : public ASTNode {
 
 		Variable &operator=(const Variable &other) = delete;
 
-		~Variable() {delete &val_;};
+		virtual ~Variable() override;
 
+	private:
 		std::string val_;
 };
+
+Variable::~Variable ()
+{
+	//std::cout << this << std::endl;
+	// std::cout << "Variable destructor " << std::endl;
+}

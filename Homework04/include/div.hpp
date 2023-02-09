@@ -1,22 +1,27 @@
 #pragma once
 
 #include <string>
-#include <iostream>
-#include <cctype>
 
 #include "astnode.hpp"
 
 class Div : public ASTNode {
 	public:
-		Div(std::string val, ASTNode *val1, ASTNode *val2) 
-			: ASTNode(val,val1, val2) 
+		Div(std::string val, ASTNode *left, ASTNode *right) 
+			: ASTNode(val, left, right) 
 			, val_(val) {}
 		
 		Div(const Div &other) = delete;
 
 		Div &operator=(const Div &other) = delete;
 
-		~Div() {delete &val_;};
+		virtual ~Div() override;
 
+	private:
 		std::string val_;
 };
+
+Div::~Div ()
+{
+	// std::cout << this << std::endl;
+	// std::cout << "Div destructor " << std::endl;
+}

@@ -3,7 +3,11 @@
 ASTNode::ASTNode(const std::string &repr)
 	: repr_(repr)
 	, lhs_{nullptr}
-	, rhs_{nullptr} {}
+	, rhs_{nullptr} 
+	{
+		// std::cout << this << std::endl;
+		// std::cout << "this ASTNode " << std::endl;
+	}
 
 ASTNode::ASTNode(const std::string &repr, ASTNode *lhs, ASTNode *rhs)
 	: repr_(repr)
@@ -11,6 +15,8 @@ ASTNode::ASTNode(const std::string &repr, ASTNode *lhs, ASTNode *rhs)
 	, rhs_{rhs} {}
 
 ASTNode::~ASTNode() {
+	// std::cout << this << std::endl;
+	// std::cout<<"ASTnode destructor " << std::endl;
 	delete lhs_;
 	delete rhs_;
 }

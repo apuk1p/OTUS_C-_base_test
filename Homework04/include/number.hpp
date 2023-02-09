@@ -14,7 +14,14 @@ class Number : public ASTNode {
 
 		Number &operator=(const Number &other) = delete;
 
-		~Number() {delete &val_;};
+		virtual ~Number() override;
 
+	private:
 		int val_;
 };
+
+Number::~Number ()
+{
+	// std::cout << this << std::endl;
+	// std::cout << "Number destructor " << std::endl;
+}

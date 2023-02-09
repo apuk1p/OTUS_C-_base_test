@@ -6,15 +6,22 @@
 
 class Sub : public ASTNode {
 	public:
-		Sub(std::string val, ASTNode *val1, ASTNode *val2) 
-			: ASTNode(val,val1, val2) 
+		Sub(std::string val, ASTNode *left, ASTNode *right) 
+			: ASTNode(val, left, right) 
 			, val_(val) {}
 		
 		Sub(const Sub &other) = delete;
 
 		Sub &operator=(const Sub &other) = delete;
 
-		~Sub() {delete &val_;};
+		virtual ~Sub() override;
 
+	private:
 		std::string val_;
 };
+
+Sub::~Sub ()
+{
+	// std::cout << this << std::endl;
+	// std::cout << "Sub destructor " << std::endl;
+}
