@@ -5,17 +5,18 @@
 #include "included/max.hpp"
 #include "included/mean.hpp"
 #include "included/stdclass.hpp"
+#include "included/pct90.hpp"
 
 int main() {
 
-	const size_t statistics_count = 3;
+	const size_t statistics_count = 5;
 	IStatistics *statistics[statistics_count];
-	StdClass stdclass;
 
 	statistics[0] = new Min{};
 	statistics[1] = new Max{};
 	statistics[2] = new Mean{};
-	//statistics[3] = new StdClass{};
+	statistics[3] = new StdClass{};
+	statistics[4] = new Pct90{};
 
 	double val = 0;
 	
@@ -23,7 +24,6 @@ int main() {
 		for (size_t i = 0; i < statistics_count; ++i) {
 			statistics[i]->update(val);
 		}
-		stdclass.update(val);
 	}
 	
 	// Handle invalid input data
@@ -37,14 +37,10 @@ int main() {
 		std::cout << statistics[i]->name() << " = " << statistics[i]->eval() << std::endl;
 	}
 
-	stdclass.calc();
-	std::cout << stdclass.name() << " = " << stdclass.eval() << std::endl;
-
 	// Clear memory - delete all objects created by new
 	for (size_t i = 0; i < statistics_count; ++i) {
 		delete statistics[i];
 	}
-	stdclass.~StdClass();
 
 	return 0;
 }

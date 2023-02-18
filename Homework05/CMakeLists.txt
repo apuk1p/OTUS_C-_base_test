@@ -4,5 +4,6 @@ project(05.homework)
 
 add_executable(statistics 
 			statistics.cpp
-			src/stdclass.cpp)
+			src/stdclass.cpp
+			src/pct90.cpp)
 set_target_properties(statistics PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)

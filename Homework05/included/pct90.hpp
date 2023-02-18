@@ -3,9 +3,9 @@
 #include "../included/istatistics.hpp"
 #include <vector>
 
-class StdClass : public IStatistics {
+class Pct90 : public IStatistics {
 public:
-	StdClass() = default;
+	Pct90() = default;
 
 	void update(double next) override;
 
@@ -14,13 +14,11 @@ public:
 	//~StdClass() override {};
 
 	const char * name() const override {
-		return "StdClass";
+		return "Pct90";
 	}
 	void calc();
  
 private:
 	std::vector<double> vect;
-	double m_std{0};
-	double sum_{0};
-	double mean_{0};
+	double m_pct90{0};
 };
