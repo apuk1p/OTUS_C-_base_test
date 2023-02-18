@@ -8,13 +8,14 @@
 
 int main() {
 
-	const size_t statistics_count = 4;
+	const size_t statistics_count = 3;
 	IStatistics *statistics[statistics_count];
+	StdClass stdclass;
 
 	statistics[0] = new Min{};
 	statistics[1] = new Max{};
 	statistics[2] = new Mean{};
-	statistics[3] = new StdClass{};
+	//statistics[3] = new StdClass{};
 
 	double val = 0;
 	
@@ -22,8 +23,9 @@ int main() {
 		for (size_t i = 0; i < statistics_count; ++i) {
 			statistics[i]->update(val);
 		}
+		stdclass.update(val);
 	}
-
+	
 	// Handle invalid input data
 	if (!std::cin.eof() && !std::cin.good()) {
 		std::cerr << "Invalid input data\n";
@@ -35,10 +37,14 @@ int main() {
 		std::cout << statistics[i]->name() << " = " << statistics[i]->eval() << std::endl;
 	}
 
+	stdclass.calc();
+	std::cout << stdclass.name() << " = " << stdclass.eval() << std::endl;
+
 	// Clear memory - delete all objects created by new
 	for (size_t i = 0; i < statistics_count; ++i) {
 		delete statistics[i];
 	}
+	stdclass.~StdClass();
 
 	return 0;
 }

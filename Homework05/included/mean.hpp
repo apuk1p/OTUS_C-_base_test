@@ -22,5 +22,5 @@ public:
 
 private:
 	double m_mean;
-	int strLength;
+	size_t strLength;
 };

@@ -5,7 +5,7 @@
 
 class Min : public IStatistics {
 public:
-	Min() : m_min{std::numeric_limits<double>::min()} {
+	Min() : m_min{0} {
 	}
 
 	void update(double next) override {

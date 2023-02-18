@@ -1,21 +1,22 @@
 #include "../included/stdclass.hpp"
+#include <cmath>
+#include <iostream>
 
 void StdClass::update(double next)
 {
-	mean_ += next;
+	sum_ += next;
 	vect.push_back(next);
 }
 
 double StdClass::eval() const
 {
-	const_cast<StdClass*>( this )->calc();
 	return m_std;
 }
 
 void StdClass::calc()
 {
-	mean_ /= vect.size() - 1;
-	for (int i = 0; i < vect.size() - 1; i ++)
+	mean_ = sum_/vect.size();
+	for (int i = 0; i < vect.size(); i ++)
 	{
 		m_std += pow(vect[i] - mean_, 2);
 	}

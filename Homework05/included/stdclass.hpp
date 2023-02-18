@@ -11,14 +11,16 @@ public:
 
 	double eval() const override;
 
-	void calc();
+	~StdClass() override {};
 
 	const char * name() const override {
 		return "StdClass";
 	}
-
+	void calc();
+ 
 private:
-	std::vector<double> vect{0};
+	std::vector<double> vect;
 	double m_std{0};
+	double sum_{0};
 	double mean_{0};
 };
