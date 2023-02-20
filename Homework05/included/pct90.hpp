@@ -11,14 +11,10 @@ public:
 
 	double eval() const override;
 
-	//~StdClass() override {};
-
 	const char * name() const override {
 		return "Pct90";
 	}
-	void calc();
  
 private:
 	std::vector<double> vect;
-	double m_pct90{0};
 };

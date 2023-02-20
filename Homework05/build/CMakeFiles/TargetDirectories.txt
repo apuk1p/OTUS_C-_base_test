@@ -1,0 +1,3 @@
+F:/c++_basic_course/Homework05/build/CMakeFiles/statistics.dir
+F:/c++_basic_course/Homework05/build/CMakeFiles/ALL_BUILD.dir
+F:/c++_basic_course/Homework05/build/CMakeFiles/ZERO_CHECK.dir
