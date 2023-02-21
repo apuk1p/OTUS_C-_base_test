@@ -4,16 +4,16 @@
 
 class Mean : public IStatistics {
 public:
-	Mean() : m_mean{0.0}, strLength{0} {
+	Mean() : m_mean{0.0}, numLength{0} {
 	}
 
 	void update(double next) override {
 		m_mean += next;
-		strLength++;
+		numLength++;
 	}
 
 	double eval() const override {
-		return m_mean/strLength;
+		return m_mean/numLength;
 	}
 
 	const char * name() const override {
@@ -22,5 +22,5 @@ public:
 
 private:
 	double m_mean;
-	size_t strLength;
+	size_t numLength;
 };
