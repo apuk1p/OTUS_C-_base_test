@@ -16,5 +16,5 @@ public:
 	}
  
 private:
-	std::vector<double> vect;
+	mutable std::vector<double> vect;
 };
