@@ -1,3 +1,0 @@
-C:/CPP_courses/Homework06/build/CMakeFiles/main.dir
-C:/CPP_courses/Homework06/build/CMakeFiles/ALL_BUILD.dir
-C:/CPP_courses/Homework06/build/CMakeFiles/ZERO_CHECK.dir
