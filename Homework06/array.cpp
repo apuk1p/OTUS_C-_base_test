@@ -1,4 +1,7 @@
-#include "array.hpp"
+#include "include/array.hpp"
+
+template<typename T>
+Array<T>::Array() : data(nullptr), size_(0), capacity_(0) {}
 
 template<typename T>
 Array<T>::Array(const int size) : size_(0), capacity_(size)
@@ -26,9 +29,32 @@ Array<T>::~Array()
 }
 
 template<typename T>
+Array<T>::Array(const Array<T> &other) :
+	data(new T[other.size_]),
+	size_(other.size_),
+	capacity_(other.capacity_)
+{
+	std::copy(other.data, other.data + size_, data);
+	std::cout << "constructor copy" << std::endl;
+}
+
+// template<typename T>
+// Array<T>::Array(Array&& other) noexcept
+// {
+// 	data = other.data;
+// 	size_ = other.size_;
+// 	capacity_ = other.capacity_;
+// 	//release
+// 	other.data = nullptr;
+// 	other.size_ = 0;
+// 	other.capacity_ = 0;
+// 	std::cout << "move copy" << std::endl;
+// }
+
+template<typename T>
 void Array<T>::increase()
 {
-	std::cout << "create new memory" << std::endl;
+	// std::cout << "create new memory" << std::endl;
 	T* new_order = new T[capacity_+1];
 	for(int i = 0; i < size_; i++)
 	{
@@ -120,6 +146,40 @@ T& Array<T>::operator[](const int & index)
 	return data[index];
 }
 
+template<typename T>
+Array<T>& Array<T>::operator=(const Array<T>& right)
+{
+	if(this != &right)
+	{
+		delete [] data;
+		size_ = right.size_;
+		data = new T[size_];
+		std::copy(right.data, right.data + size_, data);
+	}
+	std::cout << "copy" << std::endl;
+	return *this;
+}
+
+// template<typename T>
+// Array<T>& Array<T>::operator=(Array&& right) noexcept
+// {
+// 	if(this != &right)
+// 	{
+// 		delete [] data;
+
+// 		data = right.data;
+// 		size_ = right.size_;
+// 		capacity_ = right.capacity_;
+
+// 		right.data = nullptr;
+// 		right.size_ = 0;
+// 		right.capacity_ = 0;
+// 	}
+	
+// 	std::cout << "move" << std::endl;
+// 	return *this;
+// }
+
 template Array<int>;
 template Array<double>;
-template Array<std::string>;
+// template Array<std::string>;
