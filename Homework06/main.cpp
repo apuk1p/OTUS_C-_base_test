@@ -5,7 +5,7 @@ void print(Array<T> &arr)
 {
 	for(const auto& val : arr)
 	{
-		std::cout << "value is: " << *val << std::endl;
+		std::cout << "value is: " << val << std::endl;
 	}
 	std::cout << '\n' << std::endl;
 }
@@ -17,7 +17,7 @@ int main(){
 	Array<int> ar3{3,2,1,0};
 	for(const auto& val : ar2)
 	{
-		ar1.push_back(*val);
+		ar1.push_back(val);
 	}
 	std::cout << '\n' << std::endl;
 	std::cout << "Array size is: " << ar1.size() << std::endl;
@@ -39,8 +39,11 @@ int main(){
 	print(ar1);
 	Array<int> ar4(ar2);
 	print(ar4);
-	// Array<int> ar5{Array<int>(5)};
-	// print(ar5);
+	Array<int> ar5(std::move(ar3));
+	print(ar5);
+	print(ar3);
+	ar5 = std::move(ar4);
+	print(ar5);
 
 	return 0;
 };

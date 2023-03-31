@@ -35,21 +35,17 @@ Array<T>::Array(const Array<T> &other) :
 	capacity_(other.capacity_)
 {
 	std::copy(other.data, other.data + size_, data);
-	std::cout << "constructor copy" << std::endl;
+	std::cout << "copy ctor" << std::endl;
 }
 
-// template<typename T>
-// Array<T>::Array(Array&& other) noexcept
-// {
-// 	data = other.data;
-// 	size_ = other.size_;
-// 	capacity_ = other.capacity_;
-// 	//release
-// 	other.data = nullptr;
-// 	other.size_ = 0;
-// 	other.capacity_ = 0;
-// 	std::cout << "move copy" << std::endl;
-// }
+template<typename T>
+Array<T>::Array(Array&& other) noexcept : data(nullptr),size_(0),capacity_(0)
+{
+	std::swap(data, other.data);
+	std::swap(size_, other.size_);
+	std::swap(capacity_, other.capacity_);
+	std::cout << "move ctor" << std::endl;
+}
 
 template<typename T>
 void Array<T>::increase()
@@ -156,29 +152,26 @@ Array<T>& Array<T>::operator=(const Array<T>& right)
 		data = new T[size_];
 		std::copy(right.data, right.data + size_, data);
 	}
-	std::cout << "copy" << std::endl;
+	std::cout << "copy operator" << std::endl;
 	return *this;
 }
 
-// template<typename T>
-// Array<T>& Array<T>::operator=(Array&& right) noexcept
-// {
-// 	if(this != &right)
-// 	{
-// 		delete [] data;
-
-// 		data = right.data;
-// 		size_ = right.size_;
-// 		capacity_ = right.capacity_;
-
-// 		right.data = nullptr;
-// 		right.size_ = 0;
-// 		right.capacity_ = 0;
-// 	}
+template<typename T>
+Array<T>& Array<T>::operator=(Array&& other) noexcept
+{
+	data = nullptr;
+	size_ = 0;
+	capacity_ = 0;
+	if(this != &other)
+	{
+		std::swap(data, other.data);
+		std::swap(size_, other.size_);
+		std::swap(capacity_, other.capacity_);
+	}
 	
-// 	std::cout << "move" << std::endl;
-// 	return *this;
-// }
+	std::cout << "move operator" << std::endl;
+	return *this;
+}
 
 template Array<int>;
 template Array<double>;

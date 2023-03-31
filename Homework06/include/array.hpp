@@ -12,8 +12,8 @@ class Array : public Container<T>{
 				iterator operator++(int) {iterator i = *this; ++*this; return i;}
 				iterator operator--() {ptr_--; return *this;}
 				iterator operator--(int) {iterator i = *this; --*this; return i;}
-				T& operator&() {return *ptr_;}
-				T* operator*() {return ptr_;}
+				T& operator*() {return *ptr_;}
+				T* operator->() {return ptr_;}
 				bool operator== (const iterator& val) {return ptr_==val.ptr_;}
 				bool operator!= (const iterator& val) {return ptr_!=val.ptr_;}
 			private:
