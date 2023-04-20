@@ -28,8 +28,8 @@ class Array : public Container<T>{
 
 		void increase();
 		void push_back(T value) override;
-		int insert(int index, T value) override;
-		int erase(int index) override;
+		void insert(int index, T value) override;
+		void erase(int index) override;
 		int reserve(int newsize);
 
 		Iterator begin() {return Iterator(data);}

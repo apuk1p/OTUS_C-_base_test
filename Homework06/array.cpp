@@ -74,12 +74,11 @@ void Array<T>::push_back(T value)
 }
 
 template<typename T>
-int Array<T>::insert(int index, T value)
+void Array<T>::insert(int index, T value)
 {
 	if(index < 0 || index > capacity_)
 	{
-		std::cout << "Index out of range" << std::endl;
-		return -1;
+		throw std::invalid_argument("INDEX OUT OF RANGE");
 	}
 	if (size_ >= capacity_)
 	{
@@ -91,16 +90,14 @@ int Array<T>::insert(int index, T value)
 	}
 	data[index] = value;
 	size_++;
-	return 0;
 }
 
 template<typename T>
-int Array<T>::erase(const int index)
+void Array<T>::erase(const int index)
 {
 	if(index < 0 || index > capacity_)
 	{
-		std::cout << "Index out of range" << std::endl;
-		return -1;
+		throw std::invalid_argument("INDEX OUT OF RANGE");
 	}
 	for(int i=index; i < size_; i++)
 	{
@@ -108,7 +105,6 @@ int Array<T>::erase(const int index)
 	}
 	size_--;
 	//capacity_--; стоит ли уменьшать??
-	return 0;
 }
 
 template<typename T>

@@ -157,15 +157,90 @@ void List<T>::push_back(T value)
 }
 
 template<typename T>
-int List<T>::insert(int index, T value)
+void List<T>::insert(int index, T value)
 {
-	return 0;
+	if(index < 0 )
+	{
+		throw std::invalid_argument("NEGATIVE INDEX");
+	}
+	if(index == 0)
+	{
+		Node* curNode = this->head;
+		Node* newNode = new Node{nullptr, value, curNode};
+		curNode->prev_ = newNode;
+		this->head = newNode;
+		++size_;
+	}
+	else
+	{
+		int counter = 1;
+		Node* curNode = this->head;
+		while(counter != index && curNode->next_)
+		{
+			curNode = curNode->next_;
+			++counter;
+		}
+		Node* newNodeSec = new Node{curNode, value, curNode->next_};
+		if(!curNode->next_)
+		{
+			newNodeSec->next_ = nullptr;
+			curNode->next_ = newNodeSec;
+			this->tail = newNodeSec;
+			++size_;
+			std::cout << "Index out of range, it was added to " <<
+						"the end of the container. It's index is " << size_ << std::endl;
+		}
+		else{
+			Node* nextNode = curNode;
+			curNode = curNode->next_;
+			nextNode->next_ = newNodeSec;
+			curNode->prev_ = newNodeSec;
+			++size_;
+		}
+	}
 }
 
 template<typename T>
-int List<T>::erase(int index)
+void List<T>::erase(int index)
 {
-	return 0;
+	if(index < 0 || index > size_)
+	{
+		throw std::invalid_argument("INDEX OUT OF RANGE");
+	}
+	if(index == 0)
+	{
+		Node* nextNode = this->head->next_;
+		nextNode->prev_ = nullptr;
+		delete this->head;
+		this->head = nextNode;
+		--size_;
+	}
+	else
+	{
+		int counter = 1;
+		Node* curNode = this->head;
+		while(counter != index)
+		{
+			curNode = curNode->next_;
+			++counter;
+		}
+		Node* prevNode = curNode->prev_;
+		if(!curNode->next_)
+		{
+			prevNode->next_ = nullptr;
+			this->tail = prevNode;
+			delete curNode;
+			--size_;
+		}
+		else
+		{
+			Node* nextNode = curNode->next_;
+			prevNode->next_ = nextNode;
+			nextNode->prev_ = prevNode;
+			delete curNode;
+			--size_;
+		}
+	}
 }
 
 template<typename T>
@@ -180,6 +255,21 @@ typename List<T>::Iterator List<T>::Iterator::operator++(int)
 {
 	Iterator i = *this;
 	node_ = node_ -> next_;
+	return i;
+}
+
+template<typename T>
+typename List<T>::Iterator& List<T>::Iterator::operator--()
+{
+	node_ = node_ -> next_;
+	return *this;
+}
+
+template<typename T>
+typename List<T>::Iterator List<T>::Iterator::operator--(int)
+{
+	Iterator i = *this;
+	node_ = node_ -> prev_;
 	return i;
 }
 

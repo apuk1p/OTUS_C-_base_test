@@ -21,6 +21,8 @@ class List : public Container<T>{
 				Iterator(Node* mNode) : node_(mNode) {}
 				Iterator& operator++();
 				Iterator operator++(int);
+				Iterator& operator--();
+				Iterator operator--(int);
 				T& operator*() {return node_->value;}
 				// T operator*() {return node_->value;}
 				T* operator->() {return &node_->value;}
@@ -38,8 +40,8 @@ class List : public Container<T>{
 		List& operator=(List&& other) noexcept;
 
 		void push_back(T value) override;
-		int insert(int index, T value) override;
-		int erase(int index) override;
+		void insert(int index, T value) override;
+		void erase(int index) override;
 		int size() const {return size_;}
 
 		Iterator begin() {return Iterator(head);}
