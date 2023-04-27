@@ -11,11 +11,20 @@ void print(List<T> &arr, std::string name)
 	std::cout << '\n' << std::endl;
 }
 
+template<typename T>
+void print(Array<T> &arr, std::string name)
+{
+	for(const auto& val : arr)
+	{
+		std::cout << name << " " << "value is: " << val << std::endl;
+	}
+	std::cout << '\n' << std::endl;
+}
+
 int main(){
 	try
 	{
-		// int size = 10;
-		// Array<int> ar1(size);
+		// Array<int> ar1(10);
 		// Array<int> ar2{0,1,2,3,4,5,6,7,8,9};
 		// Array<int> ar3{3,2,1,0};
 		// for(const auto& val : ar2)
@@ -48,19 +57,26 @@ int main(){
 		// ar5 = std::move(ar4);
 		// print(ar5);
 		List<int> list{3,2,5,11,55,22};
-		List<int>list2{1,1,1,1,1};
 		List<int> list1{1,5,22};
+		List<int> list2{1,1,1,1,1};
+		Array<int> arNew{2,3,5};
+		// print(arNew, "arNew");
+		// std::cout << arNew.size() << std::endl;
+		// arNew.insert(-2, 10);
+		// // arNew.erase(2);
+		// print(arNew, "arNew");
+		// std::cout << arNew.size() << std::endl;
 
 		print(list1, "list 1");
 		list1.insert(0,99);
 		list1.insert(3, 33);
 		list1.insert(10,66);
-		// list1.insert(-5,100);
+		// list1.insert(-15,999);
 		print(list1, "list 1 after insert");
 		std::cout << "check size: " << list1.size() << '\n' << std::endl;
 		list1.erase(0);
 		list1.erase(4);
-		// list1.erase(6);
+		list1.erase(6);
 		print(list1, "list 1 after erase");
 		std::cout << "check after move: " << list1.size() << '\n' << std::endl;
 
