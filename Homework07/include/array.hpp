@@ -30,9 +30,12 @@ class Array{
 
 		void increase();
 		void push_back(T value);
+		void push_front(T value);
 		void insert(size_t index, T value);
 		void erase(size_t index);
 		void reserve(size_t newsize);
+
+		void counter(size_t index);
 
 		Iterator begin() {return Iterator(data);}
 		Iterator end() {return Iterator(data + size_);}
@@ -113,15 +116,37 @@ void Array<T>::increase()
 }
 
 template<typename T>
+void Array<T>::counter(size_t index)
+{
+	for (size_t i = size_; i > index; i--)
+	{
+		data[i] = data[i - 1];
+	}
+}
+
+template<typename T>
 void Array<T>::push_back(T value)
 {
 	if(size_ >= capacity_)
 	{
 		increase();
 	}
-	// std::cout << "use capacity" << std::endl;
 	data[size_] = value;
 	size_++;
+}
+
+template<typename T>
+void Array<T>::push_front(T value)
+{
+	size_t index = 0;
+	if(size_ >= capacity_)
+	{
+		increase();
+	}
+	counter(index);
+	data[index] = value;
+	size_++;
+
 }
 
 template<typename T>
@@ -135,10 +160,7 @@ void Array<T>::insert(size_t index, T value)
 	{
 		increase();
 	}
-	for (size_t i = size_; i > index; i--)
-	{
-		data[i] = data[i - 1];
-	}
+	counter(index);
 	data[index] = value;
 	size_++;
 }
@@ -215,7 +237,7 @@ Array<T>& Array<T>::operator=(Array&& other) noexcept
 		delete [] data;
 		size_ = 0;
 		capacity_ = 0;
-		data = new data[size_];
+		data = new T[size_];
 		std::swap(data, other.data);
 		std::swap(size_, other.size_);
 		std::swap(capacity_, other.capacity_);
