@@ -18,15 +18,17 @@
 const size_t TOPK = 10;
 
 using Counter = std::map<std::string, std::size_t>;
-using WorkQueue = WaitingQueue<Counter>;
-using Words = std::vector<Counter::const_iterator>;
+using WorkQueue = WaitingQueue<std::string>;
 
+std::condition_variable condition_variable;
+std::mutex mutex;
+bool notificated = false;
 
 std::string tolower(const std::string &str);
-void count_words(WorkQueue& queue, std::istream& stream, Counter&);
-void print_topk(WorkQueue& queue, std::ostream& stream, const Counter&, Words&);
-void print(Words& words, std::ostream& stream, const size_t k );
 
+void count_words(std::istream& stream, Counter&);
+
+void print_topk(std::ostream& stream, const Counter&, const size_t k);
 
 int main(int argc, char *argv[]) {
 	if (argc < 2) {
@@ -35,14 +37,11 @@ int main(int argc, char *argv[]) {
 	}
 
 	auto start = std::chrono::high_resolution_clock::now();
-	// Pool test;
-
-	WorkQueue work_queue;
-	std::atomic<bool> stop_flag = false;
 
 	Counter freq_dict;
+	WorkQueue work_queue;
+
 	std::ifstream input;
-	Words words;
 	int n_threads;
 
 	for (int i = 1; i < argc; ++i) {
@@ -52,7 +51,6 @@ int main(int argc, char *argv[]) {
 			std::cerr << "Failed to open file " << argv[i] << '\n';
 			return EXIT_FAILURE;
 		}
-
 		n_threads = (i == 2) ? std::stoi( argv[2] ) : std::thread::hardware_concurrency();
 
 		if(n_threads < 1)
@@ -61,28 +59,27 @@ int main(int argc, char *argv[]) {
 			return EXIT_FAILURE;
 		}
 	}
-	
-	std::thread thr1(count_words, std::ref(work_queue), std::ref(input), std::ref(freq_dict));
-	std::thread thr2(print_topk, std::ref(work_queue), std::ref(std::cout), std::cref(freq_dict), std::ref(words));
-	std::thread thr3(print_topk, std::ref(work_queue), std::ref(std::cout), std::cref(freq_dict), std::ref(words));
+	// count_words(input, freq_dict);
+	std::thread reader{
+		count_words,
+		std::ref(input),
+		std::ref(freq_dict)
+	};
+	std::thread writer{
+		print_topk,
+		std::ref(std::cout),
+		std::cref(freq_dict),
+		TOPK
+	};
 
-	std::this_thread::sleep_for(std::chrono::seconds{15});
-	// stop all threads
-	stop_flag = true;
-	// // need this to unblock all threads, witch are waiting the queue
-	work_queue.stop();
-	// wait all threads
-	thr1.join();
-	thr2.join();
-	thr3.join();
+	reader.join();
+	writer.join();
 
-	// std::this_thread::sleep_for(std::chrono::seconds{10});
-	// print(words, std::cout, TOPK);
+	// print_topk(std::cout, freq_dict, TOPK);
 	auto end = std::chrono::high_resolution_clock::now();
 	auto elapsed_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 	std::cout << "Elapsed time is " << elapsed_ms.count() << " us\n";
 }
-
 
 std::string tolower(const std::string &str) {
 	std::string lower_str;
@@ -99,33 +96,27 @@ std::string tolower(const std::string &str) {
 	return lower_str;
 };
 
-void count_words(WorkQueue& queue, std::istream& stream, Counter& counter) {
-	auto cnt = [&](const std::string &s) {++counter[tolower(s)];
-										std::cout << " IN " << std::endl;
-										queue.push(counter);};
-
+void count_words(std::istream& stream, Counter& counter) {
+	std::unique_lock<std::mutex> lock(mutex);
 	std::for_each(std::istream_iterator<std::string>(stream),
 				std::istream_iterator<std::string>(),
-				cnt);
-	
-	
-	
+				 [&counter](const std::string &s) { ++counter[tolower(s)];
+				 condition_variable.notify_all();
+				 std::cout << "FIRST" << std::endl;
+				 notificated = true;
+				  });
 }
 
-void print_topk(WorkQueue& queue, std::ostream& stream, const Counter& counter, Words& words ) {
+void print_topk(std::ostream& stream, const Counter& counter, const size_t k) {
+	std::unique_lock<std::mutex> lock(mutex);
+	while(!notificated) condition_variable.wait(lock);
+	std::cout << "SECOND" << std::endl;
+	std::vector<Counter::const_iterator> words;
 	words.reserve(counter.size());
-	Counter val;
-	while(queue.pop(val))
-	{
-		std::cout << " OUT " << std::endl;
-		for (auto it = std::cbegin(counter); it != std::cend(counter); ++it) {
-			words.push_back(it);
-		}
-		// queue.stop();
+	for (auto it = std::cbegin(counter); it != std::cend(counter); ++it) {
+		words.push_back(it);
 	}
-}
 
-void print(Words& words, std::ostream& stream, const size_t k ){
 	std::partial_sort(
 		std::begin(words), std::begin(words) + k, std::end(words),
 		[](auto lhs, auto &rhs) { return lhs->second > rhs->second; });
@@ -134,6 +125,6 @@ void print(Words& words, std::ostream& stream, const size_t k ){
 		std::begin(words), std::begin(words) + k,
 		[&stream](const Counter::const_iterator &pair) {
 			stream << std::setw(4) << pair->second << " " << pair->first
-					  << '\n';
+					 << '\n';
 		});
 }
