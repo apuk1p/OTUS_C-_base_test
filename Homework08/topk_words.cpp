@@ -15,7 +15,8 @@
 #include <numeric>
 #include "waiting_queue.h"
 
-const size_t TOPK = 10;
+const size_t TOPK = 5;
+
 
 using Counter = std::map<std::string, std::size_t>;
 using WorkQueue = WaitingQueue<std::string>;
@@ -26,9 +27,9 @@ using WorkQueue = WaitingQueue<std::string>;
 
 std::string tolower(const std::string &str);
 
-void count_words(WorkQueue&, std::istream& stream, Counter&);
+void count_words(std::atomic<bool>&, WorkQueue&, std::istream& stream);
 
-void print_topk(WorkQueue& ,std::ostream& stream, const Counter&, const size_t k);
+void print_topk(WorkQueue& ,std::ostream& stream, Counter&, const size_t k);
 
 int main(int argc, char *argv[]) {
 	if (argc < 2) {
@@ -43,6 +44,7 @@ int main(int argc, char *argv[]) {
 
 	std::ifstream input;
 	int n_threads;
+	std::atomic<bool> stop_flag = false;
 
 	for (int i = 1; i < argc; ++i) {
 		if( i == 1) input.open(argv[i], std::ios_base::in);
@@ -62,20 +64,29 @@ int main(int argc, char *argv[]) {
 	// count_words(input, freq_dict);
 	std::thread reader{
 		count_words,
+		std::ref(stop_flag),
 		std::ref(work_queue),
-		std::ref(input),
-		std::ref(freq_dict)
+		std::ref(input)
 	};
 	std::thread writer{
 		print_topk,
 		std::ref(work_queue),
 		std::ref(std::cout),
-		std::cref(freq_dict),
+		std::ref(freq_dict),
 		TOPK
 	};
+	std::thread writer1{
+		print_topk,
+		std::ref(work_queue),
+		std::ref(std::cout),
+		std::ref(freq_dict),
+		TOPK
+	};
+	
 
 	reader.join();
 	writer.join();
+	writer1.join();
 
 	// print_topk(std::cout, freq_dict, TOPK);
 	auto end = std::chrono::high_resolution_clock::now();
@@ -94,49 +105,49 @@ std::string tolower(const std::string &str) {
 					lambda );
 	std::for_each(lower_str.begin(), lower_str.end(), 
 				rmLambda );
-				
+	
 	return lower_str;
 };
 
-void count_words(WorkQueue& queue, std::istream& stream, Counter& counter) {
+void count_words(std::atomic<bool>& stop_flag, WorkQueue& queue, std::istream& stream) {
 	// std::unique_lock<std::mutex> lock(mutex);
+	int cntF = 0;
 	std::for_each(std::istream_iterator<std::string>(stream),
 				std::istream_iterator<std::string>(),
-				 [&counter, &queue](const std::string &s) { ++counter[tolower(s)];
-				 queue.push(s);
-				 std::cout << "FIRST" << std::endl;
+				 [&](const std::string &s) { 
+				 if(!stop_flag) queue.push(tolower(s));
 				  });
+	std::cout << "FIRST " << cntF << std::endl;
+	stop_flag = true;
 	queue.stop();
 }
 
-void print_topk(WorkQueue& queue, std::ostream& stream, const Counter& counter, const size_t k) {
+void print_topk(WorkQueue& queue, std::ostream& stream, Counter& counter, const size_t k) {
 	std::string val;
-	// Counter words;
-	std::vector<Counter::const_iterator> words;
-	words.reserve(counter.size());
-	auto it = std::begin(counter);
-	// auto itend = std::end(counter);
+
+	
 	while(queue.pop(val))
 	{
-		std::cout << "SECOND " << std::endl;
-		// words.push_back(counter.find(val));
+		++counter[val];
 	};
-	// std::vector<Counter::const_iterator> words;
-	// words.reserve(counter.size());
-	// for (auto it = std::cbegin(counter); it != std::cend(counter); ++it) {
-	// 	words.push_back(it);
-	// }
-	// auto it = words.begin();
-	// std::partial_sort(
-	// 	std::begin(words), std::begin(words) + k, std::end(words),
-	// 	[](auto lhs, auto &rhs) { return lhs->second > rhs->second; });
+	std::vector<Counter::const_iterator> words;
+	words.reserve(counter.size());
 
-	// std::for_each(
-	// 	std::begin(words), std::begin(words) + k,
-	// 	[&stream](const Counter::const_iterator &pair) {
-	// 		stream << std::setw(4) << pair->second << " " << pair->first
-	// 				 << '\n';
-	// 	});
-	std::cout << " I'M HERE " << std::endl;
+	for (auto it = std::cbegin(counter); it != std::cend(counter); ++it) {
+		words.push_back(it);
+	}
+	
+
+	std::partial_sort(
+		std::begin(words), std::begin(words) + k, std::end(words),
+		[](auto lhs, auto &rhs) { return lhs->second > rhs->second; });
+
+	std::for_each(
+		std::begin(words), std::begin(words) + k,
+		[&stream](const Counter::const_iterator &pair) {
+			stream << std::setw(4) << pair->second << " " << pair->first
+					 << '\n';
+		});
+	// std::cout << " I'M HERE " << std::endl;
 	// queue.stop();
 }
