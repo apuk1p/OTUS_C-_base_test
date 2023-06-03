@@ -15,21 +15,20 @@
 #include <numeric>
 #include "waiting_queue.h"
 
-const size_t TOPK = 5;
+const size_t TOPK = 10;
 
 
 using Counter = std::map<std::string, std::size_t>;
 using WorkQueue = WaitingQueue<std::string>;
-
-// std::condition_variable condition_variable;
-// std::mutex mutex;
-// bool notificated = false;
+using cntIterator = std::vector<Counter::const_iterator>;
 
 std::string tolower(const std::string &str);
 
 void count_words(std::atomic<bool>&, WorkQueue&, std::istream& stream);
 
-void print_topk(WorkQueue& ,std::ostream& stream, Counter&, const size_t k);
+void print_topk(WorkQueue& ,std::ostream& stream, Counter&, cntIterator&);
+
+void print(cntIterator& , const size_t k, std::ostream& stream);
 
 int main(int argc, char *argv[]) {
 	if (argc < 2) {
@@ -41,6 +40,7 @@ int main(int argc, char *argv[]) {
 
 	Counter freq_dict;
 	WorkQueue work_queue;
+	cntIterator Words;
 
 	std::ifstream input;
 	int n_threads;
@@ -61,34 +61,20 @@ int main(int argc, char *argv[]) {
 			return EXIT_FAILURE;
 		}
 	}
-	// count_words(input, freq_dict);
-	std::thread reader{
-		count_words,
-		std::ref(stop_flag),
-		std::ref(work_queue),
-		std::ref(input)
-	};
-	std::thread writer{
-		print_topk,
-		std::ref(work_queue),
-		std::ref(std::cout),
-		std::ref(freq_dict),
-		TOPK
-	};
-	std::thread writer1{
-		print_topk,
-		std::ref(work_queue),
-		std::ref(std::cout),
-		std::ref(freq_dict),
-		TOPK
-	};
+	std::vector<std::thread> thrPool;
 	
+	for(int i = 1; i < n_threads; i++)
+	{
+		if(i == 1) thrPool.push_back(std::thread(count_words, std::ref(stop_flag), std::ref(work_queue), std::ref(input)));
 
-	reader.join();
-	writer.join();
-	writer1.join();
+		thrPool.push_back(std::thread(print_topk, std::ref(work_queue), std::ref(std::cout), std::ref(freq_dict), std::ref(Words)));
+	}
+	for(int i = 0; i < thrPool.size(); i++)
+	{
+		thrPool[i].join();
+	}
 
-	// print_topk(std::cout, freq_dict, TOPK);
+	print(Words, TOPK, std::cout);
 	auto end = std::chrono::high_resolution_clock::now();
 	auto elapsed_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 	std::cout << "Elapsed time is " << elapsed_ms.count() << " us\n";
@@ -110,27 +96,24 @@ std::string tolower(const std::string &str) {
 };
 
 void count_words(std::atomic<bool>& stop_flag, WorkQueue& queue, std::istream& stream) {
-	// std::unique_lock<std::mutex> lock(mutex);
-	int cntF = 0;
 	std::for_each(std::istream_iterator<std::string>(stream),
 				std::istream_iterator<std::string>(),
 				 [&](const std::string &s) { 
 				 if(!stop_flag) queue.push(tolower(s));
 				  });
-	std::cout << "FIRST " << cntF << std::endl;
+				  
 	stop_flag = true;
 	queue.stop();
 }
 
-void print_topk(WorkQueue& queue, std::ostream& stream, Counter& counter, const size_t k) {
+void print_topk(WorkQueue& queue, std::ostream& stream, Counter& counter, cntIterator& words) {
 	std::string val;
 
-	
 	while(queue.pop(val))
 	{
 		++counter[val];
 	};
-	std::vector<Counter::const_iterator> words;
+
 	words.reserve(counter.size());
 
 	for (auto it = std::cbegin(counter); it != std::cend(counter); ++it) {
@@ -138,6 +121,22 @@ void print_topk(WorkQueue& queue, std::ostream& stream, Counter& counter, const 
 	}
 	
 
+	// std::partial_sort(
+	// 	std::begin(words), std::begin(words) + k, std::end(words),
+	// 	[](auto lhs, auto &rhs) { return lhs->second > rhs->second; });
+
+	// std::for_each(
+	// 	std::begin(words), std::begin(words) + k,
+	// 	[&stream](const Counter::const_iterator &pair) {
+	// 		stream << std::setw(4) << pair->second << " " << pair->first
+	// 				 << '\n';
+	// 	});
+	// std::cout << " I'M HERE " << std::endl;
+	// queue.stop();
+}
+
+void print(cntIterator& words, const size_t k, std::ostream& stream)
+{
 	std::partial_sort(
 		std::begin(words), std::begin(words) + k, std::end(words),
 		[](auto lhs, auto &rhs) { return lhs->second > rhs->second; });
@@ -148,6 +147,4 @@ void print_topk(WorkQueue& queue, std::ostream& stream, Counter& counter, const 
 			stream << std::setw(4) << pair->second << " " << pair->first
 					 << '\n';
 		});
-	// std::cout << " I'M HERE " << std::endl;
-	// queue.stop();
 }
