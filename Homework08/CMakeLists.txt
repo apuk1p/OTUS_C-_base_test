@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
 
-# add_subdirectory(src)
-
 project(counter)
 
 # if (MSVC)
@@ -14,4 +12,10 @@ project(counter)
 
 add_executable(${PROJECT_NAME} topk_words.cpp)
 
+find_package(Threads)
+target_link_libraries(${PROJECT_NAME} Threads::Threads)
+
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
+
+
+# counter.exe "C:\CPP_courses\Homework08\testText.txt" "C:\CPP_courses\Homework08\testText2.txt" "C:\CPP_courses\Homework08\testText3.txt" "C:\CPP_courses\Homework08\testText4.txt"
