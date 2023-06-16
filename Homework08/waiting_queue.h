@@ -149,7 +149,7 @@ private:
 				return (m_headPtr.get() != tail()); 
 			}
 		);
-		if (m_stopped)
+		if (!m_headPtr)
 			return false;
 		// Take value
 		entry = std::move(m_headPtr->value);

@@ -11,15 +11,14 @@
 #include "waiting_queue.h"
 
 const size_t TOPK = 10;
-int counter1 = 0;
 
 using Counter = std::map<std::string, std::size_t>;
 using WorkQueue = WaitingQueue<Counter>;
 
 
 std::string tolower(const std::string &str);
-void count_words(std::istream& stream, WorkQueue&, std::atomic<bool>& stop_flag);
-void print_topk(std::ostream& stream, WorkQueue&, const size_t k);
+int count_words(std::string file, WorkQueue&);
+void print_topk(std::ostream& stream, Counter&, const size_t k);
 
 
 int main(int argc, char *argv[]) {
@@ -29,47 +28,43 @@ int main(int argc, char *argv[]) {
 	}
 
 	auto start = std::chrono::high_resolution_clock::now();
-	std::ifstream input;
-	std::atomic<bool> stop_flag = false;
+	// std::ifstream input;
 
-	Counter freq_dict;
 	WorkQueue work_queue;
 	std::vector<std::string> filesArray;
-	std::vector<std::thread> threadPool;
-
+	std::vector<std::thread> threaReader;
+	std::vector<std::thread> threaWriter;
 	for (int i = 1; i < argc; ++i) 
 	{
 		filesArray.push_back(argv[i]);
 	}
 
-	threadPool.reserve(filesArray.size());
+	threaReader.reserve(filesArray.size());
 
-	for(const auto& val : filesArray)
+	for(const auto& file : filesArray)
 	{
-		input.open(val, std::ios_base::in);
-		// std::ifstream input{val};
-		if (!input.is_open()) {
-			std::cerr << "Failed to open file " << val << '\n';
-			return EXIT_FAILURE;
+		threaReader.push_back( std::thread( count_words, file, std::ref(work_queue)));
+	}
+
+	for(int i = 0; i < threaReader.size(); i++)
+	{
+		threaReader[i].join();
+	}
+
+	work_queue.stop();
+
+	Counter temp;
+	Counter freq_dict;
+	
+	while(work_queue.pop(temp))
+	{
+		for(const auto& left : temp)
+		{
+			freq_dict[left.first] += left.second;
 		}
-		threadPool.push_back( std::thread( count_words, std::ref(input), std::ref(work_queue), std::ref(stop_flag)));
-		// count_words(input, work_queue);
-		input.close();
-		// freq_dict.merge(temp);
 	}
 
-	for(int i = 0; i < threadPool.size(); i++)
-	{
-		threadPool[i].join();
-	}
-	while(work_queue.pop(freq_dict))
-	{
-		std::cout << "CHECING" << std::endl;
-	}
-	// stop_flag = true;
-	// work_queue.stop();
-	// print_topk(std::cout, work_queue, TOPK);
-	std::cout << "TEST1 " << counter1 << std::endl;
+	print_topk(std::cout, freq_dict, TOPK);
 	auto end = std::chrono::high_resolution_clock::now();
 	auto elapsed_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 	std::cout << "Elapsed time is " << elapsed_ms.count() << " us\n";
@@ -87,41 +82,36 @@ std::string tolower(const std::string &str) {
 	return lower_str;
 };
 
-void count_words(std::istream& stream, WorkQueue& queue, std::atomic<bool>& stop_flag) {
-	Counter counter;
-	std::for_each(std::istream_iterator<std::string>(stream),
-				std::istream_iterator<std::string>(),
-				[&counter](const std::string &s) { ++counter[tolower(s)]; });
-	if(!stop_flag) queue.push(counter);
-	++counter1;
-	// queue.stop();
-}
-
-void print_topk(std::ostream& stream, WorkQueue& queue, const size_t k) {
-	std::vector<Counter::const_iterator> words;
-	Counter counter;
-	std::cout << queue.pop(counter) << std::endl;
-	while(queue.pop(counter))
-	{
-		std::cout << "TEST" << std::endl;
-		std::cout << queue.pop(counter) << std::endl;
-		// for(auto [k,v] : counter)
-		// {
-		// 	// std::cout << "4LEN" << std::endl;
-		// }
+int count_words(std::string file, WorkQueue& queue) {
+	std::ifstream input{file};
+	
+	if (!input.is_open()) {
+		std::cerr << "Failed to open file " << file << '\n';
+		return EXIT_FAILURE;
 	}
 
-	// for (auto it = std::cbegin(counter); it != std::cend(counter); ++it) {
-	// 	words.push_back(it);
-	// }
-	// std::partial_sort(
-	// 	std::begin(words), std::begin(words) + k, std::end(words),
-	// 	[](auto lhs, auto &rhs) { return lhs->second > rhs->second; });
+	Counter counter;
+	std::for_each(std::istream_iterator<std::string>(input),
+				std::istream_iterator<std::string>(),
+				[&counter](const std::string &s) { ++counter[tolower(s)]; });
+	queue.push(counter);
+	return 0;
+}
 
-	// std::for_each(
-	// 	std::begin(words), std::begin(words) + k,
-	// 	[&stream](const Counter::const_iterator &pair) {
-	// 		stream << std::setw(4) << pair->second << " " << pair->first
-	// 				<< '\n';
-	// 	});
+void print_topk(std::ostream& stream, Counter& counter, const size_t k) {
+	std::vector<Counter::const_iterator> words;
+
+	for (auto it = std::cbegin(counter); it != std::cend(counter); ++it) {
+		words.push_back(it);
+	}
+	std::partial_sort(
+		std::begin(words), std::begin(words) + k, std::end(words),
+		[](auto lhs, auto &rhs) { return lhs->second > rhs->second; });
+
+	std::for_each(
+		std::begin(words), std::begin(words) + k,
+		[&stream](const Counter::const_iterator &pair) {
+			stream << std::setw(4) << pair->second << " " << pair->first
+					<< '\n';
+		});
 }
