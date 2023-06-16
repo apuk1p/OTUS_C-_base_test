@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
 	WorkQueue work_queue;
 	std::vector<std::string> filesArray;
 	std::vector<std::thread> threaReader;
-	std::vector<std::thread> threaWriter;
+	
 	for (int i = 1; i < argc; ++i) 
 	{
 		filesArray.push_back(argv[i]);
@@ -90,12 +90,20 @@ int count_words(std::string file, WorkQueue& queue) {
 		return EXIT_FAILURE;
 	}
 
-	Counter counter;
-	std::for_each(std::istream_iterator<std::string>(input),
-				std::istream_iterator<std::string>(),
-				[&counter](const std::string &s) { ++counter[tolower(s)]; });
-	queue.push(counter);
-	return 0;
+	try
+	{
+		Counter counter;
+		std::for_each(std::istream_iterator<std::string>(input),
+					std::istream_iterator<std::string>(),
+					[&counter](const std::string &s) { ++counter[tolower(s)]; });
+		queue.push(counter);
+		return 0;
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+	}
+	return -1;
 }
 
 void print_topk(std::ostream& stream, Counter& counter, const size_t k) {
